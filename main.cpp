@@ -55,10 +55,7 @@ class Object
 
         static bool isAllocatedOnTheThreadStack(void* ptr)
         {
-
-
             StackInfo info = display_stack_related_attributes(pthread_self());
-
 
             char* lowAddress   = info.stackAddress;
             char* highAddress  = lowAddress + info.stackSize;
@@ -68,8 +65,30 @@ class Object
         }
 };
 
+void terminationHandler()
+{
+    if (auto excptr = std::current_exception())
+    {
+        try
+        {
+            std::rethrow_exception(excptr);
+        }
+        catch(const std::runtime_error& err)
+        {
+            fprintf(stderr,"Runtime error %s\n", err.what());
+        }
+        catch(...)
+        {
+            fprintf(stderr,"Undefined Exception\n");
+        }
+    }
+
+    std::abort();
+}
+
 int main()
 {
+    std::set_terminate(terminationHandler);
     Object *a = new Object();
-    // Object b;  // If we enable this line, it will generate an error
+    Object b;  // If we enable this line, it will generate an error
 }
